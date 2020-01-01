@@ -1,6 +1,3 @@
-[class^=col] {
-    border: 0px solid black;
-}
 html, body {
     height: 100%;
 }
@@ -29,9 +26,6 @@ html, body {
    background-color: #f6f0cf;
    height: 20vh;
    width: 100%;
-}
-.border-top {
-    border-top: 0px solid black !important;
 }
 tr {
     cursor: pointer;

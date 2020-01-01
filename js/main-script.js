@@ -1,14 +1,16 @@
 $(document).ready(function(){
-$("#countries").select2();
+    // Init select2 component in the element where user choose a country from dropdown
+    $("#countries").select2();
 
     $(".btn-home").click(function() {
         $(".website-content").load("home.html");
         $("a[class^=btn]").removeClass("active");
         $(this).addClass("active");
     });
+    // Trigger click, so content will be cleared and home page will be rendered by default
     $(".btn-home").trigger("click");
 
-    let getAllCountries = function getAllCountries(){
+    let getAllCountries = function getAllCountries() {
     $.ajax({
         url: "https://calendarific.com/api/v2/countries",
         method: "GET",
@@ -16,15 +18,13 @@ $("#countries").select2();
             "api_key": "8fcc5b4169202fc870b5e203366dafdf938b0b15",
         },
         success: function(respond){
-            //console.log(respond);
             let countries = respond.response.countries;
-            console.log(countries);
-
             let dataTable = "<table id='countries-table' class='stripe hover row-border'><thead> <tr> "+
             " <th> Country </th> <th>ISO code</th> <th> Total holidays </th> "+ 
             " <th> Languages </th> </tr> </thead> </table>";
-           $(".website-content").html(dataTable);
 
+           $(".website-content").html(dataTable);
+           // Init datatable
             $("#countries-table").DataTable({
                 data: countries,
                 columns: [
@@ -41,26 +41,26 @@ $("#countries").select2();
         }
     });
 }
+    // 'All countries' button from the navigation click event
     $(".btn-all-countries").click(function(){
         $(".website-content").html("<div class='lead'>Loading...</div>");
         getAllCountries();
         $("a[class^=btn]").removeClass("active");
         $(this).addClass("active");
     });
-
+    // 'Check-holiday' button from the navigation click event
     $(".btn-check-holiday").click(function() {
         $("a[class^=btn]").removeClass("active");
         $(this).addClass("active");
         $(".website-content").load("check.html");
     });
 
+    // When user wants his country to be detected
     $(document).on("click","#btn-detect-country", function() {;
         $.ajax({
             url: "http://ip-api.com/json",
             method: "GET",
             success: function(respond) {
-                console.log(respond);
-                console.log("all good");
                 if (isCountryDetectionFailed(respond))
                     displayCountryDetectionFailedModal();
                 else
@@ -72,22 +72,26 @@ $("#countries").select2();
         });
     });
 
+    // When user wants to enter a country
     $(document).on("click","#btn-type-country", function() {
         $(".country-modal-title").html("Enter country");
         $("#country-modal").modal("show");
     });
 
+    // When user has chosen a country and click 'Search' button
     $("#btn-search-country").click(function() {
         $(".country-modal-title").html("Loading...");
         let countryShortISO = $("#countries").val();
         let countryName = $("#countries option:selected").text();
-
         let chosenYear = $(".year").val();
+
+        // Check if we need to set the default year
         if (isNaN(chosenYear) || chosenYear == null || chosenYear == "" || chosenYear == undefined)
             chosenYear = 2020;
         showCountryHolidays(countryShortISO, countryName, chosenYear);
     });
 
+    // When user clicks on a country row from  'All countries' tab
     $(document).on("click","tr", function() {
         let countryName = $(this).children().eq(0).html().trim();
         // get second child (iso code)
@@ -102,6 +106,7 @@ $("#countries").select2();
             showCountryHolidays(countryISO, countryName);
     });
 
+    // returns true if passed parameter is empty
     let isCountryDetectionFailed = function isCountryDetectionFailed(respond) {
         return (respond == null || respond == undefined || respond.length <= 0);
     }
@@ -110,16 +115,20 @@ $("#countries").select2();
         $("#detection-failed-modal").modal("show");
     }
 
+    // Process the data and append new row for each record
     let appendNewRowToTable = function appendNewRowToTable(data, index) {
-        console.log("here");
+        let info = data[index].description == null ? "" : data[index].description;
         let cols = "<tr><td>"+data[index].date.datetime.day+"</td>";
         cols+= "<td>"+data[index].date.datetime.month+"</td>";
         cols+= "<td>"+data[index].name +"</td>";
-        cols+= "<td>"+data[index].description+"</td>";
+        cols+= "<td>"+info+"</td>";
         cols+= "<td>"+data[index].type[0]+"</td></tr>";
         $("#country-holidays").append(cols);
     }
 
+    // Sends a request to the API to make a check based on the passed parameters
+    // If everything is OK it process the result by initializing DataTable and populating it with the data.
+    // If not it returns an error message to the user.
     let showCountryHolidays = function showCountryHolidays(countryShortISO, countryName, chosenYear = 2020) {
         $.ajax({
             url: "https://calendarific.com/api/v2/holidays",
@@ -130,7 +139,6 @@ $("#countries").select2();
                 year: chosenYear
             },
             success: function(data) {
-                console.log(data);
                 $("#country-label").html(countryName);
                 $("#year-label").html(chosenYear);
 
@@ -151,7 +159,7 @@ $("#countries").select2();
                 // the current minimum (10)
                 $("select[name='country-holidays_length']").trigger("change");
 
-                // Init datatable and style the select f
+                // Init datatable and style the select
                 $("#country-holidays").DataTable();
                 $("select[name='country-holidays_length']").addClass("select-css");
 
@@ -163,6 +171,8 @@ $("#countries").select2();
             }
         });
     }
+
+    // Clear table body when leaving the modal
     $("#holiday-modal").on("hide.bs.modal", function() {
         $("#country-holidays > tbody").html("");
     });

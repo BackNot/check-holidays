@@ -58,13 +58,13 @@ $(document).ready(function(){
     // When user wants his country to be detected
     $(document).on("click","#btn-detect-country", function() {;
         $.ajax({
-            url: "http://ip-api.com/json",
+            url: "https://freegeoip.app/json/",
             method: "GET",
             success: function(respond) {
                 if (isCountryDetectionFailed(respond))
                     displayCountryDetectionFailedModal();
                 else
-                    showCountryHolidays(respond.countryCode, respond.country);
+                    showCountryHolidays(respond["country_code"], respond["country_name"]);
             },
             error: function(jqXHR) {
                 displayCountryDetectionFailedModal();

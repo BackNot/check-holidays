@@ -15,7 +15,7 @@ $(document).ready(function(){
         url: "https://calendarific.com/api/v2/countries",
         method: "GET",
         data: {
-            "api_key": "8fcc5b4169202fc870b5e203366dafdf938b0b15",
+            "api_key": "371766abb263c5d6d019c12273a3745420702e3b",
         },
         success: function(respond){
             let countries = respond.response.countries;
@@ -134,7 +134,7 @@ $(document).ready(function(){
             url: "https://calendarific.com/api/v2/holidays",
             method: "GET",
             data: {
-                "api_key": "8fcc5b4169202fc870b5e203366dafdf938b0b15",
+                "api_key": "371766abb263c5d6d019c12273a3745420702e3b",
                 country: countryShortISO,
                 year: chosenYear
             },

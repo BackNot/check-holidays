@@ -1,62 +1,35 @@
-$(document).ready(function(){
+$(document).ready(function() {
     // Init select2 component in the element where user choose a country from dropdown
     $("#countries").select2();
 
     $(".btn-home").click(function() {
+        changeActiveNavigationTab(this);
         $(".website-content").load("home.html");
-        $("a[class^=btn]").removeClass("active");
-        $(this).addClass("active");
     });
+
     // Trigger click, so content will be cleared and home page will be rendered by default
     $(".btn-home").trigger("click");
 
-    let getAllCountries = function getAllCountries() {
-    $.ajax({
-        url: "https://calendarific.com/api/v2/countries",
-        method: "GET",
-        data: {
-            "api_key": "371766abb263c5d6d019c12273a3745420702e3b",
-        },
-        success: function(respond){
-            let countries = respond.response.countries;
-            let dataTable = "<table id='countries-table' class='stripe hover row-border'><thead> <tr> "+
-            " <th> Country </th> <th>ISO code</th> <th> Total holidays </th> "+ 
-            " <th> Languages </th> </tr> </thead> </table>";
-
-           $(".website-content").html(dataTable);
-           // Init datatable
-            $("#countries-table").DataTable({
-                data: countries,
-                columns: [
-                    {data: "country_name"},
-                    {data: "iso-3166"},
-                    {data: "total_holidays"},
-                    {data: "supported_languages"}
-                ]
-            });
-            $("select[name='countries-table_length']").addClass("select-css");
-        },
-        error: function(respond) {
-            $(".website-content").html("<span>Something went wrong.</span>");
-        }
+    // Clear table body when leaving the modal
+    $("#holiday-modal").on("hide.bs.modal", function() {
+        $("#country-holidays > tbody").html("");
     });
-}
+
     // 'All countries' button from the navigation click event
-    $(".btn-all-countries").click(function(){
+    $(".btn-all-countries").click(function() {
+        changeActiveNavigationTab(this);
         $(".website-content").html("<div class='lead'>Loading...</div>");
         getAllCountries();
-        $("a[class^=btn]").removeClass("active");
-        $(this).addClass("active");
     });
+
     // 'Check-holiday' button from the navigation click event
     $(".btn-check-holiday").click(function() {
-        $("a[class^=btn]").removeClass("active");
-        $(this).addClass("active");
+        changeActiveNavigationTab(this);
         $(".website-content").load("check.html");
     });
 
     // When user wants his country to be detected
-    $(document).on("click","#btn-detect-country", function() {;
+    $(document).on("click","#btn-detect-country", function() {
         $.ajax({
             url: "https://freegeoip.app/json/",
             method: "GET",
@@ -105,6 +78,39 @@ $(document).ready(function(){
             && countryISO != "Month")
             showCountryHolidays(countryISO, countryName);
     });
+
+    let getAllCountries = function getAllCountries() {
+        $.ajax({
+            url: "https://calendarific.com/api/v2/countries",
+            method: "GET",
+            data: {
+                "api_key": "371766abb263c5d6d019c12273a3745420702e3b", //hardcoded
+            },
+            success: function(respond) {
+                // Process the respond by building table with the result
+                let countries = respond.response.countries;
+                let dataTable = "<table id='countries-table' class='stripe hover row-border'><thead> <tr> "+
+                " <th> Country </th> <th>ISO code</th> <th> Total holidays </th> "+ 
+                " <th> Languages </th> </tr> </thead> </table>";
+    
+               $(".website-content").html(dataTable);
+               // Init datatable
+                $("#countries-table").DataTable({
+                    data: countries,
+                    columns: [
+                        {data: "country_name"},
+                        {data: "iso-3166"},
+                        {data: "total_holidays"},
+                        {data: "supported_languages"}
+                    ]
+                });
+                $("select[name='countries-table_length']").addClass("select-css");
+            },
+            error: function(respond) {
+                $(".website-content").html("<span>Something went wrong.</span>");
+            }
+        });
+    }
 
     // returns true if passed parameter is empty
     let isCountryDetectionFailed = function isCountryDetectionFailed(respond) {
@@ -172,8 +178,8 @@ $(document).ready(function(){
         });
     }
 
-    // Clear table body when leaving the modal
-    $("#holiday-modal").on("hide.bs.modal", function() {
-        $("#country-holidays > tbody").html("");
-    });
+    let changeActiveNavigationTab = function changeActiveNavigationTab(target) {
+        $("a[class^=btn]").removeClass("active");
+        $(target).addClass("active");
+    }
 });

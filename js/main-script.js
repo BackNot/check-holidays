@@ -1,4 +1,80 @@
 $(document).ready(function() {
+
+    // FUNCTIONS
+
+    // returns true if passed parameter is empty
+     let isCountryDetectionFailed = function isCountryDetectionFailed(respond) {
+        return (respond == null || respond == undefined || respond.length <= 0);
+    }
+
+    let displayCountryDetectionFailedModal = function displayCountryDetectionFailedModal() {
+        $("#detection-failed-modal").modal("show");
+    }
+
+    // Process the data and append new row for each record
+    let appendNewRowToTable = function appendNewRowToTable(data, index) {
+        let info = data[index].description == null ? "" : data[index].description;
+        let cols = "<tr><td>"+data[index].date.datetime.day+"</td>";
+        cols+= "<td>"+data[index].date.datetime.month+"</td>";
+        cols+= "<td>"+data[index].name +"</td>";
+        cols+= "<td>"+info+"</td>";
+        cols+= "<td>"+data[index].type[0]+"</td></tr>";
+        $("#country-holidays").append(cols);
+    }
+
+    // Sends a request to the API to make a check based on the passed parameters
+    // If everything is OK it process the result by initializing DataTable and populating it with the data.
+    // If not it returns an error message to the user.
+    let showCountryHolidays = function showCountryHolidays(countryShortISO, countryName, chosenYear = 2020) {
+        $.ajax({
+            url: "https://calendarific.com/api/v2/holidays",
+            method: "GET",
+            data: {
+                "api_key": "371766abb263c5d6d019c12273a3745420702e3b",
+                country: countryShortISO,
+                year: chosenYear
+            },
+            success: function(data) {
+                $("#country-label").html(countryName);
+                $("#year-label").html(chosenYear);
+
+                if (data.response.length == 0)
+                {
+                    alert("Sorry, no data for that year.");
+                    return;
+                }
+
+                // Clear & destroy from past values
+                $("#country-holidays").DataTable().clear().destroy();
+
+                for(let i = 0; i<data.response.holidays.length; i++)
+                    appendNewRowToTable(data.response.holidays, i);
+
+                // Bug: On some browsers after the first render of the table, 
+                // all records are being shown , so we manually trigger 'change' event, to show only 
+                // the current minimum (10)
+                $("select[name='country-holidays_length']").trigger("change");
+
+                // Init datatable and style the select
+                $("#country-holidays").DataTable();
+                $("select[name='country-holidays_length']").addClass("select-css");
+
+                $("#country-modal").modal("hide");     
+                $("#holiday-modal").modal("show");     
+            },
+            error: function() {
+                alert("Sorry. Something went wrong.")
+            }
+        });
+    }
+
+    let changeActiveNavigationTab = function changeActiveNavigationTab(target) {
+        $("a[class^=btn]").removeClass("active");
+        $(target).addClass("active");
+    }
+
+    // EVENTS
+
     // Init select2 component in the element where user choose a country from dropdown
     $("#countries").select2();
 
@@ -110,76 +186,5 @@ $(document).ready(function() {
                 $(".website-content").html("<span>Something went wrong.</span>");
             }
         });
-    }
-
-    // returns true if passed parameter is empty
-    let isCountryDetectionFailed = function isCountryDetectionFailed(respond) {
-        return (respond == null || respond == undefined || respond.length <= 0);
-    }
-
-    let displayCountryDetectionFailedModal = function displayCountryDetectionFailedModal() {
-        $("#detection-failed-modal").modal("show");
-    }
-
-    // Process the data and append new row for each record
-    let appendNewRowToTable = function appendNewRowToTable(data, index) {
-        let info = data[index].description == null ? "" : data[index].description;
-        let cols = "<tr><td>"+data[index].date.datetime.day+"</td>";
-        cols+= "<td>"+data[index].date.datetime.month+"</td>";
-        cols+= "<td>"+data[index].name +"</td>";
-        cols+= "<td>"+info+"</td>";
-        cols+= "<td>"+data[index].type[0]+"</td></tr>";
-        $("#country-holidays").append(cols);
-    }
-
-    // Sends a request to the API to make a check based on the passed parameters
-    // If everything is OK it process the result by initializing DataTable and populating it with the data.
-    // If not it returns an error message to the user.
-    let showCountryHolidays = function showCountryHolidays(countryShortISO, countryName, chosenYear = 2020) {
-        $.ajax({
-            url: "https://calendarific.com/api/v2/holidays",
-            method: "GET",
-            data: {
-                "api_key": "371766abb263c5d6d019c12273a3745420702e3b",
-                country: countryShortISO,
-                year: chosenYear
-            },
-            success: function(data) {
-                $("#country-label").html(countryName);
-                $("#year-label").html(chosenYear);
-
-                if (data.response.length == 0)
-                {
-                    alert("Sorry, no data for that year.");
-                    return;
-                }
-
-                // Clear & destroy from past values
-                $("#country-holidays").DataTable().clear().destroy();
-
-                for(let i = 0; i<data.response.holidays.length; i++)
-                    appendNewRowToTable(data.response.holidays, i);
-
-                // Bug: On some browsers after the first render of the table, 
-                // all records are being shown , so we manually trigger 'change' event, to show only 
-                // the current minimum (10)
-                $("select[name='country-holidays_length']").trigger("change");
-
-                // Init datatable and style the select
-                $("#country-holidays").DataTable();
-                $("select[name='country-holidays_length']").addClass("select-css");
-
-                $("#country-modal").modal("hide");     
-                $("#holiday-modal").modal("show");     
-            },
-            error: function() {
-                alert("Sorry. Something went wrong.")
-            }
-        });
-    }
-
-    let changeActiveNavigationTab = function changeActiveNavigationTab(target) {
-        $("a[class^=btn]").removeClass("active");
-        $(target).addClass("active");
     }
 });
